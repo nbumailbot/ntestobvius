@@ -15,10 +15,11 @@ def index():
 
 @app.route('/generate', methods=['POST'])
 def generate_video():
-    kuyov = request.form.get('kuyov')
-    kelin = request.form.get('kelin')
-    sana = request.form.get('sana')
-    vaqt = request.form.get('vaqt')
+    # Matnlar ichidagi xato berishi mumkin bo'lgan belgilar tozalab (escape qilib) olinadi
+    kuyov = request.form.get('kuyov', '').replace("'", "").replace(":", "\\:")
+    kelin = request.form.get('kelin', '').replace("'", "").replace(":", "\\:")
+    sana = request.form.get('sana', '').replace("'", "").replace(":", "\\:")
+    vaqt = request.form.get('vaqt', '').replace("'", "").replace(":", "\\:")
 
     # To'liq (absolyut) yo'llarni avtomatik topish
     base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -31,7 +32,7 @@ def generate_video():
     if not os.path.exists(input_video) or not os.path.exists(font_file):
         return "Xatolik: 'template.mp4' yoki 'font.ttf' fayllari topilmadi! Ularni static papkasiga joylang."
 
-    # Yo'llarni FFmpeg tushunadigan formatga keltirish (Ayniqsa Windows uchun muhim)
+    # Yo'llarni FFmpeg tushunadigan formatga keltirish
     font_file_ff = font_file.replace('\\', '/').replace(':', '\\:')
 
     text_filter = (
@@ -40,7 +41,6 @@ def generate_video():
         f"drawtext=fontfile='{font_file_ff}':text='{vaqt}':fontcolor=white:fontsize=45:x=(w-text_w)/2:y=(h-text_h)/2+130"
     )
 
-    # DİQQAT: '-c:a', 'copy' olib tashlandi, ovozsiz videoda ham ishlayverishi uchun
     command = [
         'ffmpeg', '-i', input_video,
         '-vf', text_filter,
@@ -48,11 +48,10 @@ def generate_video():
     ]
 
     try:
-        # Xatoliklarni tutib olish uchun maxsus sozlamalar
+        # Xatoliklarni tutib olish
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return send_file(output_filepath, as_attachment=True)
     except subprocess.CalledProcessError as e:
-        # Agar yana xato chiqsa, endi u 234 demaydi, balki to'liq muammoni yozib beradi
         error_msg = e.stderr.decode('utf-8', errors='ignore')
         return f"<h3>FFmpeg da xatolik yuz berdi:</h3><pre>{error_msg}</pre>"
 

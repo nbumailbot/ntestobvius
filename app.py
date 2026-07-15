@@ -44,6 +44,8 @@ def generate_video():
     command = [
         'ffmpeg', '-i', input_video,
         '-vf', text_filter,
+        '-threads', '1',           # Faqat 1 ta yadro ishlatsin (xotirani tejaydi)
+        '-preset', 'ultrafast',    # Xotira sarfini kamaytirish va tez ishlash rejimi
         '-y', output_filepath
     ]
 

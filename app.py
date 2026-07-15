@@ -11,51 +11,50 @@ os.makedirs('static', exist_ok=True)
 
 @app.route('/')
 def index():
-    # Asosiy sahifani ochish
     return render_template('index.html')
 
 @app.route('/generate', methods=['POST'])
 def generate_video():
-    # Frontend'dan kelgan ma'lumotlarni qabul qilish
     kuyov = request.form.get('kuyov')
     kelin = request.form.get('kelin')
     sana = request.form.get('sana')
     vaqt = request.form.get('vaqt')
 
-    input_video = "static/template.mp4"
-    font_file = "static/font.ttf"
+    # To'liq (absolyut) yo'llarni avtomatik topish
+    base_dir = os.path.abspath(os.path.dirname(__file__))
+    input_video = os.path.join(base_dir, "static", "template.mp4")
+    font_file = os.path.join(base_dir, "static", "font.ttf")
     
-    # Har bir yaratilgan video uchun unikal nom berish
     output_filename = f"outputs/taklifnoma_{int(time.time())}.mp4"
+    output_filepath = os.path.join(base_dir, output_filename)
 
-    # Agar fon fayllari yo'q bo'lsa xatolik berish
     if not os.path.exists(input_video) or not os.path.exists(font_file):
-        return "Xatolik: 'static/template.mp4' yoki 'static/font.ttf' fayllari topilmadi. Iltimos ularni joylashtiring."
+        return "Xatolik: 'template.mp4' yoki 'font.ttf' fayllari topilmadi! Ularni static papkasiga joylang."
 
-    # FFmpeg orqali matnlarni videoga chizish filtri
-    # x va y - bu yozuvning ekrandagi joylashuvi. Uni o'z videongizga qarab moslaysiz.
+    # Yo'llarni FFmpeg tushunadigan formatga keltirish (Ayniqsa Windows uchun muhim)
+    font_file_ff = font_file.replace('\\', '/').replace(':', '\\:')
+
     text_filter = (
-        f"drawtext=fontfile={font_file}:text='{kuyov} va {kelin}':fontcolor=gold:fontsize=60:x=(w-text_w)/2:y=(h-text_h)/2-100,"
-        f"drawtext=fontfile={font_file}:text='{sana}':fontcolor=white:fontsize=45:x=(w-text_w)/2:y=(h-text_h)/2+50,"
-        f"drawtext=fontfile={font_file}:text='{vaqt}':fontcolor=white:fontsize=45:x=(w-text_w)/2:y=(h-text_h)/2+130"
+        f"drawtext=fontfile='{font_file_ff}':text='{kuyov} va {kelin}':fontcolor=gold:fontsize=60:x=(w-text_w)/2:y=(h-text_h)/2-100,"
+        f"drawtext=fontfile='{font_file_ff}':text='{sana}':fontcolor=white:fontsize=45:x=(w-text_w)/2:y=(h-text_h)/2+50,"
+        f"drawtext=fontfile='{font_file_ff}':text='{vaqt}':fontcolor=white:fontsize=45:x=(w-text_w)/2:y=(h-text_h)/2+130"
     )
 
-    # FFmpeg komandasi (-c:a copy orqali video musiqasi saqlab qolinadi)
+    # DİQQAT: '-c:a', 'copy' olib tashlandi, ovozsiz videoda ham ishlayverishi uchun
     command = [
         'ffmpeg', '-i', input_video,
         '-vf', text_filter,
-        '-c:a', 'copy',
-        '-y', output_filename
+        '-y', output_filepath
     ]
 
     try:
-        # Komandani terminalda ishga tushirish
-        subprocess.run(command, check=True)
-        # Yaratilgan faylni foydalanuvchiga yuklab berish
-        return send_file(output_filename, as_attachment=True)
-    except Exception as e:
-        return f"Video generatsiyasida xatolik yuz berdi: {str(e)}"
+        # Xatoliklarni tutib olish uchun maxsus sozlamalar
+        subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return send_file(output_filepath, as_attachment=True)
+    except subprocess.CalledProcessError as e:
+        # Agar yana xato chiqsa, endi u 234 demaydi, balki to'liq muammoni yozib beradi
+        error_msg = e.stderr.decode('utf-8', errors='ignore')
+        return f"<h3>FFmpeg da xatolik yuz berdi:</h3><pre>{error_msg}</pre>"
 
 if __name__ == '__main__':
-    # Serverni ishga tushirish
     app.run(debug=True, port=5000)

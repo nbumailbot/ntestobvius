@@ -18,4 +18,4 @@ COPY . .
 RUN mkdir -p outputs static
 
 # Serverni ishga tushirish (Render portini eshitadi)
-CMD ["gunicorn", "--workers", "1", "--threads", "1", "-b", "0.0.0.0:10000", "app:app"]
+CMD ["gunicorn", "--workers", "1", "--threads", "1", "--timeout", "300", "-b", "0.0.0.0:10000", "app:app"]

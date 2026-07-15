@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taklifnoma Yaratish</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .form-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; margin-bottom: 20px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; color: #555; font-size: 14px; font-weight: bold;}
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px;}
+        input:focus { border-color: #007bff; outline: none; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: 0.3s;}
+        button:hover { background: #0056b3; }
+        #loading { display: none; text-align: center; margin-top: 15px; color: #007bff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2>To'y Taklifnomasi</h2>
+        <form action="/generate" method="POST" onsubmit="document.getElementById('loading').style.display='block';">
+            <div class="input-group">
+                <label>Kuyovning ismi</label>
+                <input type="text" name="kuyov" required placeholder="Masalan: Akobir">
+            </div>
+            <div class="input-group">
+                <label>Kelinning ismi</label>
+                <input type="text" name="kelin" required placeholder="Masalan: Intizor">
+            </div>
+            <div class="input-group">
+                <label>Sana</label>
+                <input type="text" name="sana" required placeholder="Masalan: 22 AVGUST 2025">
+            </div>
+            <div class="input-group">
+                <label>Vaqt</label>
+                <input type="text" name="vaqt" required placeholder="Masalan: 17:00">
+            </div>
+            <button type="submit">Videoni Tayyorlash</button>
+            <div id="loading">Biroz kuting, video yasalmoqda... ⏳</div>
+        </form>
+    </div>
+
+</body>
+</html>
